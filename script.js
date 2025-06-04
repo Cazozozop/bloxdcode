@@ -411,16 +411,16 @@ Blockly.JavaScript['event_player_click'] = function() {
 // Math, Logic & Loops : Blockly inclut déjà les générateurs natifs pour ces blocs
 
 // --- Code Generator ---
-document.getElementById('generateBtn').onclick = () => {
+document.getElementById('generateBtn').addEventListener('click', function() {
   const code = Blockly.JavaScript.workspaceToCode(workspace);
-  const output = document.getElementById('codeOutput');
-  output.textContent = code;
-  hljs.highlightElement(output);
-};
+  document.getElementById('codeOutput').innerText = code;
+  hljs.highlightElement(document.getElementById('codeOutput'));
+});
 
 // --- Copy Function ---
 function copyCode() {
-  const code = document.getElementById('codeOutput').textContent;
-  navigator.clipboard.writeText(code);
-  alert('Code copied!');
+  const code = document.getElementById('codeOutput').innerText;
+  navigator.clipboard.writeText(code).then(() => {
+    alert("Code copied!");
+  });
 }
