@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Éditeur Bloxd.io Style Scratch</title>
+  <title>Bloxd.io Scratch-style Editor</title>
   <script src="https://unpkg.com/blockly/blockly.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
@@ -47,19 +47,35 @@
 <body>
   <div id="blocklyDiv"></div>
   <div id="controls">
-    <button id="generateBtn">🧠 Générer le code JavaScript</button>
+    <button id="generateBtn">🧠 Generate JavaScript</button>
     <pre><code id="codeOutput" class="language-javascript"></code></pre>
-    <button id="copyBtn">📋 Copier le code</button>
+    <button id="copyBtn">📋 Copy Code</button>
   </div>
 
   <xml id="toolbox" style="display: none">
-    <category name="Joueur" colour="#5CA65C">
+    <category name="Player" colour="#5CA65C">
       <block type="jump_player"></block>
       <block type="send_message"></block>
       <block type="set_health"></block>
+      <block type="get_position"></block>
     </category>
-    <category name="Effets" colour="#F57C00">
+    <category name="Particles" colour="#F57C00">
       <block type="play_particles"></block>
+    </category>
+    <category name="Blocks" colour="#D32F2F">
+      <block type="set_block"></block>
+    </category>
+    <category name="Inventory" colour="#FFA000">
+      <block type="give_item"></block>
+    </category>
+    <category name="Entity" colour="#7B1FA2">
+      <block type="spawn_entity"></block>
+    </category>
+    <category name="Math" colour="#0097A7">
+      <block type="controls_if"></block>
+      <block type="math_number"></block>
+      <block type="logic_compare"></block>
+      <block type="math_arithmetic"></block>
     </category>
   </xml>
 
@@ -72,63 +88,95 @@
     Blockly.defineBlocksWithJsonArray([
       {
         "type": "jump_player",
-        "message0": "faire sauter le joueur",
+        "message0": "make player jump",
         "previousStatement": null,
         "nextStatement": null,
         "colour": 160
       },
       {
         "type": "send_message",
-        "message0": "envoyer le message %1",
-        "args0": [{"type": "field_input", "name": "MESSAGE", "text": "Bonjour !"}],
+        "message0": "send message %1",
+        "args0": [{"type": "field_input", "name": "MESSAGE", "text": "Hello!"}],
         "previousStatement": null,
         "nextStatement": null,
         "colour": 210
       },
       {
         "type": "set_health",
-        "message0": "définir la santé à %1",
+        "message0": "set health to %1",
         "args0": [{"type": "field_number", "name": "VALUE", "value": 20}],
         "previousStatement": null,
         "nextStatement": null,
         "colour": 120
       },
       {
+        "type": "get_position",
+        "message0": "get player position (x, y, z)",
+        "output": "Array",
+        "colour": 60
+      },
+      {
         "type": "play_particles",
-        "message0": "jouer des particules de type %1 à x:%2 y:%3 z:%4",
+        "message0": "play particles type %1 at x:%2 y:%3 z:%4 with size %5 and lifetime %6",
         "args0": [
-          {"type": "field_input", "name": "TYPE", "text": "flame"},
+          {"type": "field_dropdown", "name": "TYPE", "options": [["flame","flame"],["cloud","cloud"],["portal","portal"],["smoke","smoke"]]},
+          {"type": "field_number", "name": "X", "value": 0},
+          {"type": "field_number", "name": "Y", "value": 0},
+          {"type": "field_number", "name": "Z", "value": 0},
+          {"type": "field_number", "name": "SIZE", "value": 1},
+          {"type": "field_number", "name": "LIFETIME", "value": 1}
+        ],
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 30
+      },
+      {
+        "type": "set_block",
+        "message0": "set block %1 at x:%2 y:%3 z:%4",
+        "args0": [
+          {"type": "field_input", "name": "BLOCK", "text": "stone"},
           {"type": "field_number", "name": "X", "value": 0},
           {"type": "field_number", "name": "Y", "value": 0},
           {"type": "field_number", "name": "Z", "value": 0}
         ],
         "previousStatement": null,
         "nextStatement": null,
-        "colour": 30
+        "colour": 0
+      },
+      {
+        "type": "give_item",
+        "message0": "give item %1 quantity %2",
+        "args0": [
+          {"type": "field_input", "name": "ITEM", "text": "wood"},
+          {"type": "field_number", "name": "QUANTITY", "value": 1}
+        ],
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 40
+      },
+      {
+        "type": "spawn_entity",
+        "message0": "spawn entity %1 at x:%2 y:%3 z:%4",
+        "args0": [
+          {"type": "field_input", "name": "ENTITY", "text": "chicken"},
+          {"type": "field_number", "name": "X", "value": 0},
+          {"type": "field_number", "name": "Y", "value": 0},
+          {"type": "field_number", "name": "Z", "value": 0}
+        ],
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 80
       }
     ]);
 
-    Blockly.JavaScript['jump_player'] = function(block) {
-      return 'api.setVelocity(myId, 0, 9, 0);\n';
-    };
-
-    Blockly.JavaScript['send_message'] = function(block) {
-      const msg = block.getFieldValue('MESSAGE');
-      return `api.sendMessage(myId, \"${msg}\");\n`;
-    };
-
-    Blockly.JavaScript['set_health'] = function(block) {
-      const value = block.getFieldValue('VALUE');
-      return `api.setHealth(myId, ${value});\n`;
-    };
-
-    Blockly.JavaScript['play_particles'] = function(block) {
-      const type = block.getFieldValue('TYPE');
-      const x = block.getFieldValue('X');
-      const y = block.getFieldValue('Y');
-      const z = block.getFieldValue('Z');
-      return `api.playParticleEffect({ type: \"${type}\", position: { x: ${x}, y: ${y}, z: ${z} } });\n`;
-    };
+    Blockly.JavaScript['jump_player'] = () => 'api.setVelocity(myId, 0, 9, 0);\n';
+    Blockly.JavaScript['send_message'] = block => `api.sendMessage(myId, \"${block.getFieldValue('MESSAGE')}\");\n`;
+    Blockly.JavaScript['set_health'] = block => `api.setHealth(myId, ${block.getFieldValue('VALUE')});\n`;
+    Blockly.JavaScript['get_position'] = () => ['api.getPosition(myId)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+    Blockly.JavaScript['play_particles'] = block => `api.playParticleEffect({ type: \"${block.getFieldValue('TYPE')}\", position: { x: ${block.getFieldValue('X')}, y: ${block.getFieldValue('Y')}, z: ${block.getFieldValue('Z')} }, size: ${block.getFieldValue('SIZE')}, lifetime: ${block.getFieldValue('LIFETIME')} });\n`;
+    Blockly.JavaScript['set_block'] = block => `api.setBlock('${block.getFieldValue('BLOCK')}', ${block.getFieldValue('X')}, ${block.getFieldValue('Y')}, ${block.getFieldValue('Z')});\n`;
+    Blockly.JavaScript['give_item'] = block => `api.giveItem('${block.getFieldValue('ITEM')}', ${block.getFieldValue('QUANTITY')});\n`;
+    Blockly.JavaScript['spawn_entity'] = block => `api.spawnEntity('${block.getFieldValue('ENTITY')}', ${block.getFieldValue('X')}, ${block.getFieldValue('Y')}, ${block.getFieldValue('Z')});\n`;
 
     const codeOutput = document.getElementById('codeOutput');
     document.getElementById('generateBtn').onclick = () => {
@@ -138,9 +186,7 @@
     };
 
     document.getElementById('copyBtn').onclick = () => {
-      navigator.clipboard.writeText(codeOutput.textContent).then(() => {
-        alert('Code copié !');
-      });
+      navigator.clipboard.writeText(codeOutput.textContent).then(() => alert('Code copied!'));
     };
   </script>
 </body>
