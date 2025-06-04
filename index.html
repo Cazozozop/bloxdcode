@@ -2,57 +2,71 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Bloxd.io Scratch-like Editor</title>
+  <title>Éditeur Bloxd.io Style Scratch</title>
   <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <style>
-    html, body {
-      height: 100%;
+    body {
       margin: 0;
-      font-family: sans-serif;
-      background: #f0f0f0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #1e1e1e;
+      color: white;
     }
     #blocklyDiv {
-      height: 80vh;
+      height: 70vh;
       width: 100%;
     }
-    #generateBtn {
-      width: 100%;
+    #controls {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
       padding: 10px;
-      font-size: 18px;
-      background-color: #4CAF50;
+      gap: 10px;
+    }
+    #generateBtn, #copyBtn {
+      padding: 10px;
+      font-size: 16px;
+      background-color: #00c853;
       color: white;
       border: none;
       cursor: pointer;
+      border-radius: 4px;
     }
     #codeOutput {
-      width: 100%;
-      height: 20vh;
-      background: #333;
-      color: #0f0;
-      padding: 10px;
-      box-sizing: border-box;
+      background: #282c34;
+      color: #f8f8f2;
+      padding: 15px;
       font-family: monospace;
       overflow: auto;
+      max-height: 30vh;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
   <div id="blocklyDiv"></div>
-  <button id="generateBtn">Générer le code JavaScript</button>
-  <pre id="codeOutput"></pre>
+  <div id="controls">
+    <button id="generateBtn">🧠 Générer le code JavaScript</button>
+    <pre><code id="codeOutput" class="language-javascript"></code></pre>
+    <button id="copyBtn">📋 Copier le code</button>
+  </div>
 
   <xml id="toolbox" style="display: none">
-    <category name="Mouvement" colour="#5CA65C">
+    <category name="Joueur" colour="#5CA65C">
       <block type="jump_player"></block>
-    </category>
-    <category name="Messages" colour="#5C81A6">
       <block type="send_message"></block>
+      <block type="set_health"></block>
+    </category>
+    <category name="Effets" colour="#F57C00">
+      <block type="play_particles"></block>
     </category>
   </xml>
 
   <script>
     const workspace = Blockly.inject('blocklyDiv', {
-      toolbox: document.getElementById('toolbox')
+      toolbox: document.getElementById('toolbox'),
+      theme: Blockly.Themes.Dark
     });
 
     Blockly.defineBlocksWithJsonArray([
@@ -61,25 +75,36 @@
         "message0": "faire sauter le joueur",
         "previousStatement": null,
         "nextStatement": null,
-        "colour": 160,
-        "tooltip": "Fait sauter le joueur",
-        "helpUrl": ""
+        "colour": 160
       },
       {
         "type": "send_message",
         "message0": "envoyer le message %1",
+        "args0": [{"type": "field_input", "name": "MESSAGE", "text": "Bonjour !"}],
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 210
+      },
+      {
+        "type": "set_health",
+        "message0": "définir la santé à %1",
+        "args0": [{"type": "field_number", "name": "VALUE", "value": 20}],
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 120
+      },
+      {
+        "type": "play_particles",
+        "message0": "jouer des particules de type %1 à x:%2 y:%3 z:%4",
         "args0": [
-          {
-            "type": "field_input",
-            "name": "MESSAGE",
-            "text": "Bonjour !"
-          }
+          {"type": "field_input", "name": "TYPE", "text": "flame"},
+          {"type": "field_number", "name": "X", "value": 0},
+          {"type": "field_number", "name": "Y", "value": 0},
+          {"type": "field_number", "name": "Z", "value": 0}
         ],
         "previousStatement": null,
         "nextStatement": null,
-        "colour": 230,
-        "tooltip": "Envoie un message au joueur",
-        "helpUrl": ""
+        "colour": 30
       }
     ]);
 
@@ -92,9 +117,30 @@
       return `api.sendMessage(myId, \"${msg}\");\n`;
     };
 
+    Blockly.JavaScript['set_health'] = function(block) {
+      const value = block.getFieldValue('VALUE');
+      return `api.setHealth(myId, ${value});\n`;
+    };
+
+    Blockly.JavaScript['play_particles'] = function(block) {
+      const type = block.getFieldValue('TYPE');
+      const x = block.getFieldValue('X');
+      const y = block.getFieldValue('Y');
+      const z = block.getFieldValue('Z');
+      return `api.playParticleEffect({ type: \"${type}\", position: { x: ${x}, y: ${y}, z: ${z} } });\n`;
+    };
+
+    const codeOutput = document.getElementById('codeOutput');
     document.getElementById('generateBtn').onclick = () => {
       const code = Blockly.JavaScript.workspaceToCode(workspace);
-      document.getElementById('codeOutput').textContent = code;
+      codeOutput.textContent = code;
+      hljs.highlightElement(codeOutput);
+    };
+
+    document.getElementById('copyBtn').onclick = () => {
+      navigator.clipboard.writeText(codeOutput.textContent).then(() => {
+        alert('Code copié !');
+      });
     };
   </script>
 </body>
