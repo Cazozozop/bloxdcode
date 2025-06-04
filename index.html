@@ -2,192 +2,108 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Bloxd.io Scratch-style Editor</title>
+  <title>Bloxd.io Code Builder</title>
   <script src="https://unpkg.com/blockly/blockly.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #1e1e1e;
-      color: white;
-    }
-    #blocklyDiv {
-      height: 70vh;
-      width: 100%;
-    }
-    #controls {
+      font-family: sans-serif;
       display: flex;
       flex-direction: column;
-      align-items: stretch;
-      padding: 10px;
-      gap: 10px;
+      height: 100vh;
+      margin: 0;
     }
-    #generateBtn, #copyBtn {
+    #blocklyDiv {
+      height: 50vh;
+      width: 100%;
+    }
+    #codeArea {
+      flex: 1;
       padding: 10px;
-      font-size: 16px;
-      background-color: #00c853;
+      background: #1e1e1e;
       color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    #codeOutput {
-      background: #282c34;
-      color: #f8f8f2;
-      padding: 15px;
-      font-family: monospace;
       overflow: auto;
-      max-height: 30vh;
-      border-radius: 4px;
+    }
+    pre {
+      margin: 0;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
+
   <div id="blocklyDiv"></div>
-  <div id="controls">
-    <button id="generateBtn">🧠 Generate JavaScript</button>
-    <pre><code id="codeOutput" class="language-javascript"></code></pre>
-    <button id="copyBtn">📋 Copy Code</button>
-  </div>
 
   <xml id="toolbox" style="display: none">
-    <category name="Player" colour="#5CA65C">
-      <block type="jump_player"></block>
-      <block type="send_message"></block>
-      <block type="set_health"></block>
+    <category name="Player" colour="230">
       <block type="get_position"></block>
+      <block type="set_velocity"></block>
+      <block type="set_health"></block>
+      <block type="get_health"></block>
+      <block type="set_skin"></block>
+      <block type="set_pose"></block>
+      <block type="teleport_player"></block>
     </category>
-    <category name="Particles" colour="#F57C00">
+    <category name="Messages" colour="210">
+      <block type="send_message"></block>
+      <block type="broadcast_message"></block>
+      <block type="send_flying_message"></block>
+    </category>
+    <category name="Particles" colour="30">
       <block type="play_particles"></block>
     </category>
-    <category name="Blocks" colour="#D32F2F">
+    <category name="Blocks" colour="60">
       <block type="set_block"></block>
+      <block type="get_block"></block>
+      <block type="remove_block"></block>
     </category>
-    <category name="Inventory" colour="#FFA000">
+    <category name="Inventory" colour="90">
       <block type="give_item"></block>
+      <block type="drop_item"></block>
+      <block type="remove_item"></block>
     </category>
-    <category name="Entity" colour="#7B1FA2">
+    <category name="Entities" colour="120">
       <block type="spawn_entity"></block>
+      <block type="set_entity_velocity"></block>
+      <block type="play_entity_sound"></block>
+      <block type="remove_entity"></block>
     </category>
-    <category name="Math" colour="#0097A7">
-      <block type="controls_if"></block>
+    <category name="Math" colour="230">
       <block type="math_number"></block>
-      <block type="logic_compare"></block>
       <block type="math_arithmetic"></block>
+      <block type="math_random_int"></block>
+    </category>
+    <category name="Logic" colour="210">
+      <block type="controls_if"></block>
+      <block type="logic_compare"></block>
+      <block type="logic_boolean"></block>
+    </category>
+    <category name="Loops" colour="120">
+      <block type="controls_repeat_ext"></block>
+      <block type="controls_whileUntil"></block>
+    </category>
+    <category name="Events" colour="65">
+      <block type="event_player_join"></block>
+      <block type="event_player_leave"></block>
+      <block type="event_player_click"></block>
     </category>
   </xml>
 
-  <script>
-    const workspace = Blockly.inject('blocklyDiv', {
-      toolbox: document.getElementById('toolbox'),
-      theme: Blockly.Themes.Dark
-    });
+  <div style="padding: 10px; background: #f0f0f0; display: flex; justify-content: space-between;">
+    <button id="generateBtn">Generate JavaScript</button>
+    <button onclick="copyCode()">Copy Code</button>
+  </div>
 
-    Blockly.defineBlocksWithJsonArray([
-      {
-        "type": "jump_player",
-        "message0": "make player jump",
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 160
-      },
-      {
-        "type": "send_message",
-        "message0": "send message %1",
-        "args0": [{"type": "field_input", "name": "MESSAGE", "text": "Hello!"}],
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 210
-      },
-      {
-        "type": "set_health",
-        "message0": "set health to %1",
-        "args0": [{"type": "field_number", "name": "VALUE", "value": 20}],
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 120
-      },
-      {
-        "type": "get_position",
-        "message0": "get player position (x, y, z)",
-        "output": "Array",
-        "colour": 60
-      },
-      {
-        "type": "play_particles",
-        "message0": "play particles type %1 at x:%2 y:%3 z:%4 with size %5 and lifetime %6",
-        "args0": [
-          {"type": "field_dropdown", "name": "TYPE", "options": [["flame","flame"],["cloud","cloud"],["portal","portal"],["smoke","smoke"]]},
-          {"type": "field_number", "name": "X", "value": 0},
-          {"type": "field_number", "name": "Y", "value": 0},
-          {"type": "field_number", "name": "Z", "value": 0},
-          {"type": "field_number", "name": "SIZE", "value": 1},
-          {"type": "field_number", "name": "LIFETIME", "value": 1}
-        ],
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 30
-      },
-      {
-        "type": "set_block",
-        "message0": "set block %1 at x:%2 y:%3 z:%4",
-        "args0": [
-          {"type": "field_input", "name": "BLOCK", "text": "stone"},
-          {"type": "field_number", "name": "X", "value": 0},
-          {"type": "field_number", "name": "Y", "value": 0},
-          {"type": "field_number", "name": "Z", "value": 0}
-        ],
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 0
-      },
-      {
-        "type": "give_item",
-        "message0": "give item %1 quantity %2",
-        "args0": [
-          {"type": "field_input", "name": "ITEM", "text": "wood"},
-          {"type": "field_number", "name": "QUANTITY", "value": 1}
-        ],
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 40
-      },
-      {
-        "type": "spawn_entity",
-        "message0": "spawn entity %1 at x:%2 y:%3 z:%4",
-        "args0": [
-          {"type": "field_input", "name": "ENTITY", "text": "chicken"},
-          {"type": "field_number", "name": "X", "value": 0},
-          {"type": "field_number", "name": "Y", "value": 0},
-          {"type": "field_number", "name": "Z", "value": 0}
-        ],
-        "previousStatement": null,
-        "nextStatement": null,
-        "colour": 80
-      }
-    ]);
+  <div id="codeArea">
+    <pre><code id="codeOutput" class="language-javascript">// Your code will appear here...</code></pre>
+  </div>
 
-    Blockly.JavaScript['jump_player'] = () => 'api.setVelocity(myId, 0, 9, 0);\n';
-    Blockly.JavaScript['send_message'] = block => `api.sendMessage(myId, \"${block.getFieldValue('MESSAGE')}\");\n`;
-    Blockly.JavaScript['set_health'] = block => `api.setHealth(myId, ${block.getFieldValue('VALUE')});\n`;
-    Blockly.JavaScript['get_position'] = () => ['api.getPosition(myId)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
-    Blockly.JavaScript['play_particles'] = block => `api.playParticleEffect({ type: \"${block.getFieldValue('TYPE')}\", position: { x: ${block.getFieldValue('X')}, y: ${block.getFieldValue('Y')}, z: ${block.getFieldValue('Z')} }, size: ${block.getFieldValue('SIZE')}, lifetime: ${block.getFieldValue('LIFETIME')} });\n`;
-    Blockly.JavaScript['set_block'] = block => `api.setBlock('${block.getFieldValue('BLOCK')}', ${block.getFieldValue('X')}, ${block.getFieldValue('Y')}, ${block.getFieldValue('Z')});\n`;
-    Blockly.JavaScript['give_item'] = block => `api.giveItem('${block.getFieldValue('ITEM')}', ${block.getFieldValue('QUANTITY')});\n`;
-    Blockly.JavaScript['spawn_entity'] = block => `api.spawnEntity('${block.getFieldValue('ENTITY')}', ${block.getFieldValue('X')}, ${block.getFieldValue('Y')}, ${block.getFieldValue('Z')});\n`;
+  <script src="script.js"></script>
 
-    const codeOutput = document.getElementById('codeOutput');
-    document.getElementById('generateBtn').onclick = () => {
-      const code = Blockly.JavaScript.workspaceToCode(workspace);
-      codeOutput.textContent = code;
-      hljs.highlightElement(codeOutput);
-    };
-
-    document.getElementById('copyBtn').onclick = () => {
-      navigator.clipboard.writeText(codeOutput.textContent).then(() => alert('Code copied!'));
-    };
-  </script>
 </body>
 </html>
