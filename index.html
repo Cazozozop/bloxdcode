@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Bloxd.io Scratch-like Editor</title>
+  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: sans-serif;
+      background: #f0f0f0;
+    }
+    #blocklyDiv {
+      height: 80vh;
+      width: 100%;
+    }
+    #generateBtn {
+      width: 100%;
+      padding: 10px;
+      font-size: 18px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #codeOutput {
+      width: 100%;
+      height: 20vh;
+      background: #333;
+      color: #0f0;
+      padding: 10px;
+      box-sizing: border-box;
+      font-family: monospace;
+      overflow: auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="blocklyDiv"></div>
+  <button id="generateBtn">Générer le code JavaScript</button>
+  <pre id="codeOutput"></pre>
+
+  <xml id="toolbox" style="display: none">
+    <category name="Mouvement" colour="#5CA65C">
+      <block type="jump_player"></block>
+    </category>
+    <category name="Messages" colour="#5C81A6">
+      <block type="send_message"></block>
+    </category>
+  </xml>
+
+  <script>
+    const workspace = Blockly.inject('blocklyDiv', {
+      toolbox: document.getElementById('toolbox')
+    });
+
+    Blockly.defineBlocksWithJsonArray([
+      {
+        "type": "jump_player",
+        "message0": "faire sauter le joueur",
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 160,
+        "tooltip": "Fait sauter le joueur",
+        "helpUrl": ""
+      },
+      {
+        "type": "send_message",
+        "message0": "envoyer le message %1",
+        "args0": [
+          {
+            "type": "field_input",
+            "name": "MESSAGE",
+            "text": "Bonjour !"
+          }
+        ],
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 230,
+        "tooltip": "Envoie un message au joueur",
+        "helpUrl": ""
+      }
+    ]);
+
+    Blockly.JavaScript['jump_player'] = function(block) {
+      return 'api.setVelocity(myId, 0, 9, 0);\n';
+    };
+
+    Blockly.JavaScript['send_message'] = function(block) {
+      const msg = block.getFieldValue('MESSAGE');
+      return `api.sendMessage(myId, \"${msg}\");\n`;
+    };
+
+    document.getElementById('generateBtn').onclick = () => {
+      const code = Blockly.JavaScript.workspaceToCode(workspace);
+      document.getElementById('codeOutput').textContent = code;
+    };
+  </script>
+</body>
+</html>
